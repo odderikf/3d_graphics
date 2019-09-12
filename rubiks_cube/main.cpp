@@ -18,7 +18,7 @@ const double _CAM_DISTANCE = 8;
 const double _NEAR = 2;
 const double _FAR = 15.;
 
-enum sticker{
+enum face{
     U = 0,
     D = 1,
     F = 2,
@@ -35,6 +35,21 @@ std::array<double, 4> COLOR_L = {1.0, 0.5, 0.0, 1.0}; //orange
 std::array<double, 4> COLOR_R = {1.0, 0.0, 0.0, 1.0}; //red
 std::array<double, 4> COLOR_INTERNAL = {0.0, 0.0, 0.0, 1.0}; //black
 
+glm::dmat4 &turn_face_mat(glm::dmat4 &mat, const face &f, const double &angle = -glm::half_pi<double>()){
+    glm::dvec3 axis;
+    switch (f){
+        case U: axis = {0, 1, 0}; break;
+        case D: axis = {0, -1, 0}; break;
+        case F: axis = {0, 0, 1}; break;
+        case B: axis = {0, 0, -1}; break;
+        case L: axis = {-1, 0, 0}; break;
+        case R: axis = {1, 0, 0}; break;
+        default: return mat;
+    }
+
+    mat = glm::rotate(mat, angle, axis);
+    return mat;
+}
 class corner{
 private:
     std::array<double, 4> _color_U = {0,0,0,1};
@@ -238,21 +253,22 @@ void init_cube(){
     glm::dmat4 model(1.);
 
     corners[0] = corner({COLOR_U, COLOR_B, COLOR_R}, model);
-    model = glm::rotate(model, -glm::half_pi<double>(), {0, 1, 0});
+    turn_face_mat(model, U);
     corners[1] = corner({COLOR_U, COLOR_R, COLOR_F}, model);
-    model = glm::rotate(model, -glm::half_pi<double>(), {0, 1, 0});
+    turn_face_mat(model, U);
     corners[2] = corner({COLOR_U, COLOR_F, COLOR_L}, model);
-    model = glm::rotate(model, -glm::half_pi<double>(), {0, 1, 0});
+    turn_face_mat(model, U);
     corners[3] = corner({COLOR_U, COLOR_L, COLOR_B}, model);
 
     model = glm::dmat4(1.);
     model = glm::rotate(model, -glm::pi<double>(), {0, 0, 1});
+
     corners[4] = corner({COLOR_D, COLOR_B, COLOR_L}, model);
-    model = glm::rotate(model, -glm::half_pi<double>(), {0, 1, 0});
+    turn_face_mat(model, U);
     corners[5] = corner({COLOR_D, COLOR_L, COLOR_F}, model);
-    model = glm::rotate(model, -glm::half_pi<double>(), {0, 1, 0});
+    turn_face_mat(model, U);
     corners[6] = corner({COLOR_D, COLOR_F, COLOR_R}, model);
-    model = glm::rotate(model, -glm::half_pi<double>(), {0, 1, 0});
+    turn_face_mat(model, U);
     corners[7] = corner({COLOR_D, COLOR_R, COLOR_B}, model);
 
     for(int i = 0; i < corners.size(); ++i){
