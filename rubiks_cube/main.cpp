@@ -1,3 +1,4 @@
+#define GLM_ENABLE_EXPERIMENTAL
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -6,8 +7,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/constants.hpp>
-#include <cmath>
+#include <glm/gtx/string_cast.hpp>
 
+#include <cmath>
 #include <initializer_list>
 #include <array>
 #include <iostream>
@@ -84,7 +86,10 @@ public:
 
     void animate(glm::dvec3 axes){
         piece_animating = true;
-        animation_target = glm::rotate(_model, glm::half_pi<double>(), axes);
+
+        glm::dvec4 v(1.,1.,-1., 1);
+        animation_target = glm::rotate(glm::dmat4(1.), glm::half_pi<double>(), axes) * _model;
+        std::cout << glm::to_string(animation_target * v) << std::endl << std::endl;
         animation_axes = axes;
     }
 
@@ -92,7 +97,7 @@ public:
         auto curr_model = _model;
         if(piece_animating) {
             if(is_animating){
-                curr_model = glm::rotate(_model, t * glm::half_pi<double>(), animation_axes);
+                curr_model = glm::rotate(glm::dmat4(1.), t * glm::half_pi<double>(), animation_axes) * _model;
             }
             else {
                 _model = animation_target;
