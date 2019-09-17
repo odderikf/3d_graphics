@@ -24,7 +24,7 @@ const double _CAM_DISTANCE = 8;
 const double _CAM_SPEED = 0.1;
 const double _NEAR = 2;
 const double _FAR = 15.;
-const double _ANIM_STEPS = 100;
+const double _ANIM_STEPS = 30;
 
 enum face{
     U = 0,
@@ -65,39 +65,36 @@ private:
     bool piece_animating = false;
     glm::dmat4 _model = glm::dmat4(1.);
     glm::dmat4 animation_target = _model;
-    glm::dvec3 animation_axes = {0,0,0};
+    glm::dvec3 animation_rotation_axes = {0,0,0};
 
 public:
     corner() = default;
 
-    corner(std::array<std::array<double, 4>, 3> UBRR) :
-    _color_U(UBRR[0]), _color_B(UBRR[1]), _color_R(UBRR[2])
+    corner(std::array<std::array<double, 4>, 3> UBR) :
+    _color_U(UBR[0]), _color_B(UBR[1]), _color_R(UBR[2])
     {}
 
-    corner(std::array<std::array<double, 4>, 3> UBRR, std::array<double, 4> initial_rotation) :
-            _color_U(UBRR[0]), _color_B(UBRR[1]), _color_R(UBRR[2])
+    corner(std::array<std::array<double, 4>, 3> UBR, std::array<double, 4> initial_rotation) :
+            _color_U(UBR[0]), _color_B(UBR[1]), _color_R(UBR[2])
     {
         _model = glm::rotate(_model, initial_rotation[0], {initial_rotation[1], initial_rotation[2], initial_rotation[3]});
     }
 
-    corner(std::array<std::array<double, 4>, 3> UBRR, glm::dmat4 model) :
-            _color_U(UBRR[0]), _color_B(UBRR[1]), _color_R(UBRR[2]), _model(model)
+    corner(std::array<std::array<double, 4>, 3> UBR, glm::dmat4 model) :
+            _color_U(UBR[0]), _color_B(UBR[1]), _color_R(UBR[2]), _model(model)
     {}
 
     void animate(glm::dvec3 axes){
         piece_animating = true;
-
-        glm::dvec4 v(1.,1.,-1., 1);
         animation_target = glm::rotate(glm::dmat4(1.), glm::half_pi<double>(), axes) * _model;
-        std::cout << glm::to_string(animation_target * v) << std::endl << std::endl;
-        animation_axes = axes;
+        animation_rotation_axes = axes;
     }
 
     void display(){
         auto curr_model = _model;
         if(piece_animating) {
             if(is_animating){
-                curr_model = glm::rotate(glm::dmat4(1.), t * glm::half_pi<double>(), animation_axes) * _model;
+                curr_model = glm::rotate(glm::dmat4(1.), t * glm::half_pi<double>(), animation_rotation_axes) * _model;
             }
             else {
                 _model = animation_target;
@@ -108,52 +105,141 @@ public:
 
         glPushMatrix();
             glMultMatrixd( glm::value_ptr( curr_model ) );
-
+            glTranslated(1., 1., -1.);
             glColor4dv(_color_U.data());
             glBegin(GL_TRIANGLE_STRIP);
                 glNormal3d(0, 1, 0);
-                glVertex3d(1.5, 1.5, -1.5);
-                glVertex3d(1.5, 1.5, -0.5);
-                glVertex3d(0.5, 1.5, -1.5);
-                glVertex3d(0.5, 1.5, -0.5);
+                glVertex3d(0.5, 0.5, -0.5);
+                glVertex3d(0.5, 0.5, 0.5);
+                glVertex3d(-0.5, 0.5, -0.5);
+                glVertex3d(-0.5, 0.5, 0.5);
             glEnd();
 
             glColor4dv(_color_B.data());
             glBegin(GL_TRIANGLE_STRIP);
                 glNormal3d(0, 0, -1);
-                glVertex3d(1.5, 1.5, -1.5);
-                glVertex3d(0.5, 1.5, -1.5);
-                glVertex3d(1.5, 0.5, -1.5);
-                glVertex3d(0.5, 0.5, -1.5);
+                glVertex3d(0.5, 0.5, -0.5);
+                glVertex3d(-0.5, 0.5, -0.5);
+                glVertex3d(0.5, -0.5, -0.5);
+                glVertex3d(-0.5, -0.5, -0.5);
             glEnd();
 
             glColor4dv(_color_R.data());
             glBegin(GL_TRIANGLE_STRIP);
                 glNormal3d(1, 0, 0);
-                glVertex3d(1.5, 1.5, -1.5);
-                glVertex3d(1.5, 0.5, -1.5);
-                glVertex3d(1.5, 1.5, -0.5);
-                glVertex3d(1.5, 0.5, -0.5);
+                glVertex3d(0.5, 0.5, -0.5);
+                glVertex3d(0.5, -0.5, -0.5);
+                glVertex3d(0.5, 0.5, 0.5);
+                glVertex3d(0.5, -0.5, 0.5);
             glEnd();
 
             glColor4dv(COLOR_INTERNAL.data());
             glBegin(GL_TRIANGLE_FAN);
                 glNormal3d(-1, 0, 0);
-                glVertex3d(0.5, 0.5, -0.5);
-                glVertex3d(0.5, 0.5, -1.5);
-                glVertex3d(0.5, 1.5, -1.5);
-                glVertex3d(0.5, 1.5, -0.5);
+                glVertex3d(-0.5, -0.5, 0.5);
+                glVertex3d(-0.5, -0.5, -0.5);
+                glVertex3d(-0.5, 0.5, -0.5);
+                glVertex3d(-0.5, 0.5, 0.5);
                 glNormal3d(0, 0, 1);
-                glVertex3d(1.5, 1.5, -0.5);
-                glVertex3d(1.5, 0.5, -0.5);
+                glVertex3d(0.5, 0.5, 0.5);
+                glVertex3d(0.5, -0.5, 0.5);
                 glNormal3d(0, -1, 0);
-                glVertex3d(1.5, 0.5, -1.5);
-                glVertex3d(0.5, 0.5, -1.5);
+                glVertex3d(0.5, -0.5, -0.5);
+                glVertex3d(-0.5, -0.5, -0.5);
             glEnd();
-            glBegin(GL_LINES);
-                glVertex3d(0, 0, 0);
-                glVertex3d(1.5, 1.5, -1.5);
-            glEnd();
+        glPopMatrix();
+    }
+};
+
+class edge{
+private:
+    std::array<double, 4> _color_U = {0,0,0,1};
+    std::array<double, 4> _color_B = {0,0,0,1};
+    bool piece_animating = false;
+    glm::dmat4 _model = glm::dmat4(1.);
+    glm::dmat4 animation_target = _model;
+    glm::dvec3 animation_rotation_axes = {0,0,0};
+
+public:
+    edge() = default;
+
+    edge(std::array<std::array<double, 4>, 3> UB) :
+            _color_U(UB[0]), _color_B(UB[1])
+    {}
+
+    edge(std::array<std::array<double, 4>, 3> UB, std::array<double, 4> initial_rotation) :
+            _color_U(UB[0]), _color_B(UB[1])
+    {
+        _model = glm::rotate(_model, initial_rotation[0], {initial_rotation[1], initial_rotation[2], initial_rotation[3]});
+    }
+
+    edge(std::array<std::array<double, 4>, 3> UBRR, glm::dmat4 model) :
+            _color_U(UBRR[0]), _color_B(UBRR[1]), _model(model)
+    {}
+
+    void animate(glm::dvec3 axes){
+        piece_animating = true;
+        animation_target = glm::rotate(glm::dmat4(1.), glm::half_pi<double>(), axes) * _model;
+        animation_rotation_axes = axes;
+    }
+
+    void display(){
+        auto curr_model = _model;
+        if(piece_animating) {
+            if(is_animating){
+                curr_model = glm::rotate(glm::dmat4(1.), t * glm::half_pi<double>(), animation_rotation_axes) * _model;
+            }
+            else {
+                _model = animation_target;
+                curr_model = _model;
+                piece_animating = false;
+            }
+        }
+
+        glPushMatrix();
+        glMultMatrixd( glm::value_ptr( curr_model ) );
+        glTranslated(0., 1., -1.);
+        glColor4dv(_color_U.data());
+        glBegin(GL_TRIANGLE_STRIP);
+        glNormal3d(0, 1, 0);
+        glVertex3d(0.5, 0.5, -0.5);
+        glVertex3d(0.5, 0.5, 0.5);
+        glVertex3d(-0.5, 0.5, -0.5);
+        glVertex3d(-0.5, 0.5, 0.5);
+        glEnd();
+
+        glColor4dv(_color_B.data());
+        glBegin(GL_TRIANGLE_STRIP);
+        glNormal3d(0, 0, -1);
+        glVertex3d(0.5, 0.5, -0.5);
+        glVertex3d(-0.5, 0.5, -0.5);
+        glVertex3d(0.5, -0.5, -0.5);
+        glVertex3d(-0.5, -0.5, -0.5);
+        glEnd();
+
+        glColor4dv(COLOR_INTERNAL.data());
+
+        glBegin(GL_TRIANGLE_STRIP);
+        glNormal3d(1, 0, 0);
+        glVertex3d(0.5, 0.5, -0.5);
+        glVertex3d(0.5, -0.5, -0.5);
+        glVertex3d(0.5, 0.5, 0.5);
+        glVertex3d(0.5, -0.5, 0.5);
+        glEnd();
+
+        glBegin(GL_TRIANGLE_FAN);
+        glNormal3d(-1, 0, 0);
+        glVertex3d(-0.5, -0.5, 0.5);
+        glVertex3d(-0.5, -0.5, -0.5);
+        glVertex3d(-0.5, 0.5, -0.5);
+        glVertex3d(-0.5, 0.5, 0.5);
+        glNormal3d(0, 0, 1);
+        glVertex3d(0.5, 0.5, 0.5);
+        glVertex3d(0.5, -0.5, 0.5);
+        glNormal3d(0, -1, 0);
+        glVertex3d(0.5, -0.5, -0.5);
+        glVertex3d(-0.5, -0.5, -0.5);
+        glEnd();
         glPopMatrix();
     }
 };
@@ -161,6 +247,11 @@ public:
 std::array<corner *, 8> corners;
 
 std::array<corner *, 8> corner_positions;
+
+
+std::array<edge *, 12> edges;
+
+std::array<edge *, 12> edge_positions;
 
 void display() {
 
@@ -184,6 +275,9 @@ void display() {
 
     for (auto c : corners){
         c->display();
+    }
+    for (auto e : edges){
+        e->display();
     }
 
     glPointSize(50.f);
@@ -216,72 +310,91 @@ void special_input(int key, int x, int y){
 }
 
 void start_animating_maybe(unsigned char key){
-    std::array<int, 4> swap = {0, 0, 0, 0};
+    std::array<int, 4> swap_corner = {0, 0, 0, 0};
+    std::array<int, 4> swap_edge = {0, 0, 0, 0};
     glm::dvec3 axes;
     switch(key) {
         default: return;
 
         case 'u':
-            swap = {3, 0, 1, 2};
+            swap_corner = swap_edge = {3, 0, 1, 2};
             axes = - move_axes[U];
             break;
         case 'U':
-            swap = {2, 1, 0, 3};
+            swap_corner = swap_edge  = {2, 1, 0, 3};
             axes = move_axes[U];
             break;
         case 'd':
-            swap = {7, 4, 5, 6};
+            swap_corner = swap_edge  = {7, 4, 5, 6};
             axes = - move_axes[D];
             break;
         case 'D':
-            swap = {6, 5, 4, 7};
+            swap_corner = swap_edge  = {6, 5, 4, 7};
             axes = move_axes[D];
             break;
         case 'f':
-            swap = {2, 1, 6, 5};
+            swap_corner = {2, 1, 6, 5};
+            swap_edge = {6, 10, 2, 9};
             axes = - move_axes[F];
             break;
         case 'F':
-            swap = {5, 6, 1, 2};
+            swap_corner = {5, 6, 1, 2};
+            swap_edge = {9, 2, 10, 6};
             axes = move_axes[F];
             break;
         case 'b':
-            swap = {0, 3, 4, 7};
+            swap_corner = {0, 3, 4, 7};
+            swap_edge = {11, 0, 8, 4};
             axes = - move_axes[B];
             break;
         case 'B':
-            swap = {7, 4, 3, 0};
+            swap_corner = {7, 4, 3, 0};
+            swap_edge = {4, 8, 0, 11};
             axes = move_axes[B];
             break;
         case 'r':
-            swap = {1, 0, 7, 6};
+            swap_corner = {1, 0, 7, 6};
+            swap_edge = {11, 7, 9, 1};
             axes = - move_axes[R];
             break;
         case 'R':
-            swap = {6, 7, 0, 1};
+            swap_corner = {6, 7, 0, 1};
+            swap_edge = {1, 9, 7, 11};
             axes = move_axes[R];
             break;
         case 'l':
-            swap = {3, 2, 5, 4};
+            swap_corner = {3, 2, 5, 4};
+            swap_edge = {3, 10, 5, 8};
             axes = - move_axes[L];
             break;
         case 'L':
-            swap = {4,5,2,3};
+            swap_corner = {4, 5, 2, 3};
+            swap_edge = {8, 5, 10, 3};
             axes = move_axes[L];
             break;
     }
 
-    for (auto i : swap){
+    for (auto i : swap_corner){
         corner_positions[i]->animate(axes);
     }
+    for (auto i : swap_edge){
+        edge_positions[i]->animate(axes);
+    }
+
     is_animating = true;
     t = 0;
 
-    corner * temp = corner_positions[swap[3]];
-    corner_positions[swap[3]] = corner_positions[swap[2]];
-    corner_positions[swap[2]] = corner_positions[swap[1]];
-    corner_positions[swap[1]] = corner_positions[swap[0]];
-    corner_positions[swap[0]] = temp;
+    corner * temp_corner = corner_positions[swap_corner[3]];
+    corner_positions[swap_corner[3]] = corner_positions[swap_corner[2]];
+    corner_positions[swap_corner[2]] = corner_positions[swap_corner[1]];
+    corner_positions[swap_corner[1]] = corner_positions[swap_corner[0]];
+    corner_positions[swap_corner[0]] = temp_corner;
+
+    edge * temp_edge = edge_positions[swap_edge[3]];
+    edge_positions[swap_edge[3]] = edge_positions[swap_edge[2]];
+    edge_positions[swap_edge[2]] = edge_positions[swap_edge[1]];
+    edge_positions[swap_edge[1]] = edge_positions[swap_edge[0]];
+    edge_positions[swap_edge[0]] = temp_edge;
 
 }
 
@@ -314,36 +427,74 @@ void init_cube(){
     glm::dmat4 model(1.);
 
     corners[0] = new corner({COLOR_U, COLOR_B, COLOR_R}, model);
+    edges[0] = new edge({COLOR_U, COLOR_B}, model);
     turn_face_mat(model, U);
     corners[1] = new corner({COLOR_U, COLOR_R, COLOR_F}, model);
+    edges[1] = new edge({COLOR_U, COLOR_R}, model);
     turn_face_mat(model, U);
     corners[2] = new corner({COLOR_U, COLOR_F, COLOR_L}, model);
+    edges[2] = new edge({COLOR_U, COLOR_F}, model);
     turn_face_mat(model, U);
     corners[3] = new corner({COLOR_U, COLOR_L, COLOR_B}, model);
+    edges[3] = new edge({COLOR_U, COLOR_L}, model);
 
     model = glm::dmat4(1.);
     model = glm::rotate(model, -glm::pi<double>(), {0, 0, 1});
 
     corners[4] = new corner({COLOR_D, COLOR_B, COLOR_L}, model);
+    edges[4] = new edge({COLOR_D, COLOR_B}, model);
     turn_face_mat(model, U);
     corners[5] = new corner({COLOR_D, COLOR_L, COLOR_F}, model);
+    edges[5] = new edge({COLOR_D, COLOR_L}, model);
     turn_face_mat(model, U);
     corners[6] = new corner({COLOR_D, COLOR_F, COLOR_R}, model);
+    edges[6] = new edge({COLOR_D, COLOR_F}, model);
     turn_face_mat(model, U);
     corners[7] = new corner({COLOR_D, COLOR_R, COLOR_B}, model);
+    edges[7] = new edge({COLOR_D, COLOR_R}, model);
+
+    model = glm::dmat4(1.);
+    turn_face_mat(model, B);
+    edges[8] = new edge({COLOR_L, COLOR_B}, model);
+    turn_face_mat(model, L);
+    turn_face_mat(model, L);
+    edges[9] = new edge({COLOR_R, COLOR_F}, model);
+    turn_face_mat(model, F);
+    turn_face_mat(model, F);
+    edges[10] = new edge({COLOR_L, COLOR_F}, model);
+    turn_face_mat(model, R);
+    turn_face_mat(model, R);
+    edges[11] = new edge({COLOR_R, COLOR_B}, model);
 
     for(int i = 0; i < corners.size(); ++i){
         corner_positions[i] = corners[i];
     }
+    for(int i = 0; i < edges.size(); ++i){
+        edge_positions[i] = edges[i];
+    }
+
+
+}
+
+void cleanup(int signum){
+    for (auto c : corners){
+        delete c;
+    }
+    for (auto e : edges){
+        delete e;
+    }
+
+    exit(signum);
 }
 
 int main(int argc, char** argv) {
+    signal(SIGINT, cleanup);
+
     glutInit(&argc, argv);
     glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize (800, 800);
     glutInitWindowPosition (100, 100);
     glutCreateWindow ("Rubik's Cube");
-
 
     init_cube();
 
@@ -356,9 +507,5 @@ int main(int argc, char** argv) {
     reshape(800, 800);
     glutMainLoop();
 
-    for (auto c : corners){
-        delete c;
-    }
-
-    return 0;
+    cleanup(0);
 }
